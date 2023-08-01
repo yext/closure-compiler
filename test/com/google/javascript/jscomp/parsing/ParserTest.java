@@ -1149,6 +1149,26 @@ public final class ParserTest extends BaseJSTypeTestCase {
   }
 
   @Test
+  public void testJSDocAttachment17() {
+    Node varNode = parse("/** @type {{x: (string|undefined), y?: string, z?: (string|undefined)}} */var a;").getFirstChild();
+
+    // VAR
+    assertNode(varNode).hasType(Token.VAR);
+    assertNodeHasJSDocInfoWithJSType(
+        varNode,
+        createRecordTypeBuilder()
+            .addProperty("x", createUnionType(STRING_TYPE, VOID_TYPE), null)
+            .addProperty("y", createUnionType(STRING_TYPE, VOID_TYPE), null)
+            .addProperty("z", createUnionType(STRING_TYPE, VOID_TYPE), null)
+            .build());
+
+    // NAME
+    Node nameNode = varNode.getFirstChild();
+    assertNode(nameNode).hasType(Token.NAME);
+    assertThat(nameNode.getJSDocInfo()).isNull();
+  }
+
+  @Test
   public void testJSDocAttachmentForCastFnCall() {
     Node fn =
         parse("function f() { " + "  return /** @type {string} */ (g(1 /** @desc x */));" + "};")

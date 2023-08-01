@@ -2571,6 +2571,14 @@ public final class JsDocInfoParser {
       return null;
     }
 
+    // handle {x?: T} as equivalent to {x: (T|undefined)}
+    boolean optional = false;
+    if (match(JsDocToken.QMARK)) {
+      // Move to the question mark.
+      next();
+      optional = true;
+    }
+
     skipEOLs();
     if (!match(JsDocToken.COLON)) {
       return fieldName;
@@ -2586,6 +2594,14 @@ public final class JsDocInfoParser {
 
     if (typeExpression == null) {
       return null;
+    }
+
+    // Convert T to (T|undefined) if {x?: T}
+    if (optional) {
+      Node union = newNode(Token.PIPE);
+      union.addChildToBack(typeExpression);
+      union.addChildToBack(newNode(Token.VOID));
+      typeExpression = union;
     }
 
     Node fieldType = newNode(Token.COLON);
